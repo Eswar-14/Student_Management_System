@@ -1,0 +1,30 @@
+# --- Java / Spring Boot ---
+target/
+!.mvn/wrapper/maven-wrapper.jar
+*.class
+.mtj.tmp/
+*.jar
+*.war
+*.ear
+*.factorypath
+.settings/
+.classpath
+.project
+
+# --- React / Node ---
+node_modules/
+/build
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- IDE Specific ---
+.idea/
+.vscode/
+*.swp
+*.iml
