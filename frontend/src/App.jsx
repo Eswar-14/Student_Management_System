@@ -1,6 +1,6 @@
 import HeaderComponent from './components/HeaderComponent'
 import FooterComponent from './components/FooterComponent'
-import ListStudentComponent from './components/ListComponent'
+import ListStudentComponent from './components/ListStudentComponent'
 import './App.css'
 
 function App() {

@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin("*") //This allows your React app to access the API
 @RestController
 @RequestMapping("/api/v1")
-@CrossOrigin(origins = "http://localhost:3000") // This allows your React app to talk to the backend
 public class StudentController {
     @Autowired
     private StudentRepository studentRepository;
