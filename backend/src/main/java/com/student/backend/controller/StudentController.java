@@ -19,6 +19,12 @@ public class StudentController {
     public List<Student> getAllStudents() {
         return studentRepository.findAll();
     }
+    
+    // NEW: Check if email already exists
+    @GetMapping("/students/check-email")
+    public boolean checkEmailExists(@RequestParam String email) {
+        return studentRepository.existsByEmail(email);
+    }
 
     // POST (Create) a new student
     @PostMapping("/students")

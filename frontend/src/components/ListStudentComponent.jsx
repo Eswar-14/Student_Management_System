@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import StudentService from '../services/StudentService';
+import { useNavigate } from 'react-router-dom';
 
 const ListStudentComponent = () => {
     // 1. Initialize an empty array for students
@@ -19,9 +20,16 @@ const ListStudentComponent = () => {
         });
     };
 
+    const navigator = useNavigate(); //for navigation
+
+    function addNewStudent() {
+        navigator('/add-student')
+    }
+
     return (
         <div className="container mt-5">
             <h2 className="text-center mb-4">Live Student Records</h2>
+            <button className="btn btn-primary mb-2" onClick={addNewStudent}>Add Student</button>
             <div className="card shadow">
                 <div className="card-body">
                     <table className="table table-striped table-bordered">

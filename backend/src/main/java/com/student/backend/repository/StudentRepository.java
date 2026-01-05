@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Long> {
     // JpaRepository gives us save(), findAll(), findById(), etc.
+    boolean existsByEmail(String email);
 }
