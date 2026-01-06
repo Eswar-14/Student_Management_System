@@ -1,20 +1,22 @@
 package com.student.backend.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "students")
-@Data // This generates getters and setters automatically
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     private String department;

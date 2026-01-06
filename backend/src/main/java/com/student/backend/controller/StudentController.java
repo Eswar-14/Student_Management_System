@@ -1,34 +1,44 @@
 package com.student.backend.controller;
 
-import com.student.backend.model.Student;
-import com.student.backend.repository.StudentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.student.backend.dto.StudentDto;
+import com.student.backend.service.StudentService;
+import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
-@CrossOrigin("*") //This allows your React app to access the API
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/students")
+@AllArgsConstructor
 public class StudentController {
-    @Autowired
-    private StudentRepository studentRepository;
 
-    // GET all students
-    @GetMapping("/students")
-    public List<Student> getAllStudents() {
-        return studentRepository.findAll();
-    }
-    
-    // NEW: Check if email already exists
-    @GetMapping("/students/check-email")
-    public boolean checkEmailExists(@RequestParam String email) {
-        return studentRepository.existsByEmail(email);
+    private StudentService studentService;
+
+    @PostMapping
+    public ResponseEntity<StudentDto> createStudent(@RequestBody StudentDto dto){
+        return new ResponseEntity<>(studentService.createStudent(dto), HttpStatus.CREATED);
     }
 
-    // POST (Create) a new student
-    @PostMapping("/students")
-    public Student createStudent(@RequestBody Student student) {
-        return studentRepository.save(student);
+    @GetMapping("{id}")
+    public ResponseEntity<StudentDto> getStudentById(@PathVariable("id") Long id){
+        return ResponseEntity.ok(studentService.getStudentById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<StudentDto>> getAllStudents(){
+        return ResponseEntity.ok(studentService.getAllStudents());
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity<StudentDto> updateStudent(@PathVariable("id") Long id, @RequestBody StudentDto dto){
+        return ResponseEntity.ok(studentService.updateStudent(id, dto));
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteStudent(@PathVariable("id") Long id){
+        studentService.deleteStudent(id);
+        return ResponseEntity.ok("Student Deleted!");
     }
 }
