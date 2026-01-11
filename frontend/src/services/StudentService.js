@@ -1,18 +1,18 @@
 import axios from 'axios';
 
-// This is the URL of your Spring Boot GET endpoint
-const STUDENT_API_BASE_URL = "http://localhost:8080/api/v1/students";
+const REST_API_BASE_URL = 'http://localhost:8080/api/students';
 
-class StudentService {
-    // Method to fetch all students
-    getStudents() {
-        return axios.get(STUDENT_API_BASE_URL);
-    }
+// GET ALL
+export const listStudents = () => axios.get(REST_API_BASE_URL);
 
-    //Method to create student
-    createStudent(student){
-        return axios.post(STUDENT_API_BASE_URL, student);
-    }
-}
+// CREATE
+export const createStudent = (student) => axios.post(REST_API_BASE_URL, student);
 
-export default new StudentService();
+// GET SINGLE (Used to pre-fill the Update form)
+export const getStudent = (studentId) => axios.get(REST_API_BASE_URL + '/' + studentId);
+
+// UPDATE
+export const updateStudent = (studentId, student) => axios.put(REST_API_BASE_URL + '/' + studentId, student);
+
+// DELETE
+export const deleteStudent = (studentId) => axios.delete(REST_API_BASE_URL + '/' + studentId);

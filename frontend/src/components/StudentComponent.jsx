@@ -1,114 +1,146 @@
-import React, { useState } from 'react'
-import StudentService from '../services/StudentService'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { createStudent, getStudent, updateStudent } from '../services/StudentService';
+import { useNavigate, useParams } from 'react-router-dom';
 
 const StudentComponent = () => {
-    // 1. State variables to hold form data
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [department, setDepartment] = useState('')
-
-    //for error state
-    const [errors, setErrors] = useState({
-    email: '',
-    name: '',
-    department: ''
-    });
-
-    // List of allowed branches
-    const branches = ["CSE", "ECE", "EEE", "Mechanical", "Civil", "IT"];
+    // 1. INPUT STATES: Store current values of the form fields
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [department, setDepartment] = useState('');
     
+    // 2. ERROR STATES: Store error messages to be displayed in the UI
+    const [serverError, setServerError] = useState(''); 
+    const [errors, setErrors] = useState({ name: '', email: '', department: '' });
+
+    const { id } = useParams();
     const navigator = useNavigate();
 
-    //For Email handling
-    const handleEmailChange = async (value) => {
-        setEmail(value);
-        let errorMsg = '';
+    // REGEX PATTERNS: Defined once at the top for efficiency
+    const alphaRegex = /^[A-Za-z\s]+$/; // Allows letters and spaces only
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/; // Standard email format
 
-        // 1. Check Format (Using your existing Regex)
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) {
-            errorMsg = "Invalid email format (e.g., name@test.com)";
-        } else {
-            // 2. Check Database for Duplicate (New Step)
-            try {
-                const response = await StudentService.checkEmail(value);
-                if (response.data === true) {
-                    errorMsg = "This email is already registered!";
-                }
-            } catch (err) {
-                console.error("Database check failed", err);
-            }
+    // Fetch student data if editing (id exists in URL)
+    useEffect(() => {
+        if (id) {
+            getStudent(id).then((response) => {
+                setName(response.data.name);
+                setEmail(response.data.email);
+                setDepartment(response.data.department);
+            }).catch(error => { console.error(error); });
         }
+    }, [id]);
 
-        setErrors(prev => ({ ...prev, email: errorMsg }));
+    // 3. LIVE HANDLERS: These trigger every time a key is pressed (onKeyUp/onChange)
+    
+    // Validates name as user enters data
+    const handleNameChange = (val) => {
+        setName(val); // Update the value state
+        if (!val.trim()) {
+            // Update only the 'name' property in the errors object
+            setErrors(prev => ({ ...prev, name: 'Name is required' }));
+        } else if (!alphaRegex.test(val)) {
+            setErrors(prev => ({ ...prev, name: 'Only alphabets are allowed' }));
+        } else {
+            setErrors(prev => ({ ...prev, name: '' })); // Clear error if valid
+        }
     };
-    // Function to handle the Save button click
-    const saveStudent = (e) => {
+
+    // Validates email format as user enters data
+    const handleEmailChange = (val) => {
+        setEmail(val);
+        if (!val.trim()) {
+            setErrors(prev => ({ ...prev, email: 'Email is required' }));
+        } else if (!emailRegex.test(val)) {
+            setErrors(prev => ({ ...prev, email: 'Invalid email (e.g. user@gmail.com)' }));
+        } else {
+            setErrors(prev => ({ ...prev, email: '' }));
+        }
+    };
+
+    // Validates department as user enters data
+    const handleDeptChange = (val) => {
+        setDepartment(val);
+        if (!val.trim()) {
+            setErrors(prev => ({ ...prev, department: 'Department is required' }));
+        } else if (!alphaRegex.test(val)) {
+            setErrors(prev => ({ ...prev, department: 'Only alphabets are allowed' }));
+        } else {
+            setErrors(prev => ({ ...prev, department: '' }));
+        }
+    };
+
+    // 4. SUBMIT FUNCTION: Final check before hitting the backend
+    const saveOrUpdateStudent = (e) => {
         e.preventDefault();
 
-        // Block submission if there are any errors or empty fields
-        if (errors.email || !name || !email || !department) {
-            alert("Please fix the errors and fill all fields before submitting.");
+        // Check if any errors exist or if any fields are empty
+        if (errors.name || errors.email || errors.department || !name || !email || !department) {
+            setServerError("Please fix all errors and fill all fields before submitting.");
             return;
         }
 
         const student = { name, email, department };
-        StudentService.createStudent(student).then((response) => {
-            navigator('/students');
-        });
-    }
-    //Function to handle the cancel button
-    const cancelForm = () => {
-    setName('');
-    setEmail('');
-    setDepartment('');
-    navigator('/students'); // Optional: sends them back to the list
-    }
+        setServerError(''); 
+
+        if (id) {
+            updateStudent(id, student).then(() => navigator('/students'))
+                .catch(error => setServerError(error.response?.data?.message));
+        } else {
+            createStudent(student).then(() => navigator('/students'))
+                .catch(error => setServerError(error.response?.data?.message));
+        }
+    };
 
     return (
         <div className='container mt-5'>
-            <div className='row'>
-                <div className='card col-md-6 offset-md-3'>
-                    <h2 className='text-center mt-2'>Add Student</h2>
-                    <div className='card-body'>
-                        <form>
-                            <div className='form-group mb-2'>
-                                <label className='form-label'>Name:</label>
-                                <input type='text' placeholder='Enter Name' className='form-control'
-                                    value={name} onChange={(e) => setName(e.target.value)} />
-                            </div>
-                            <div className='form-group mb-2'>
-                                <label className='form-label'>Email:</label>
-                                <input 
-                                    type='email' 
-                                    placeholder='Enter Email' 
-                                    className={`form-control ${errors.email ? 'is-invalid' : ''}`} // Turns border red
-                                    value={email} 
-                                    onChange={(e) => handleEmailChange(e.target.value)} 
-                                />
-                                {/* This shows the red text error message */}
-                                {errors.email && <div className='invalid-feedback'>{errors.email}</div>}
-                            </div>
-                            <div className='form-group mb-2'>
-                                <label className='form-label'>Department:</label>
-                                <select 
-                                    className='form-control' 
-                                    value={department} 
-                                    onChange={(e) => setDepartment(e.target.value)}
-                                >
-                                    <option value="">Select Branch</option>
-                                    {branches.map(branch => <option key={branch} value={branch}>{branch}</option>)}
-                                </select>
-                            </div>
-                            <button className='btn btn-success' onClick={saveStudent}>Submit</button>
-                            <button className='btn btn-danger' onClick={cancelForm} style={{marginLeft: "10px"}}>Cancel</button>
-                        </form>
-                    </div>
+            <div className='card col-md-6 offset-md-3 shadow'>
+                <h2 className='text-center mt-2'>{id ? 'Update Student' : 'Add Student'}</h2>
+                <div className='card-body'>
+                    {/* Backend specific errors (e.g. Unique Email violation) */}
+                    {serverError && <div className='alert alert-danger'>{serverError}</div>}
+                    
+                    <form>
+                        <div className='form-group mb-2'>
+                            <label className='form-label'>Name:</label>
+                            <input 
+                                type='text' 
+                                className={`form-control ${errors.name ? 'is-invalid' : ''}`} 
+                                value={name} 
+                                onChange={(e) => handleNameChange(e.target.value)} 
+                            />
+                            {/* Shows red text under input if error exists */}
+                            {errors.name && <div className='invalid-feedback'>{errors.name}</div>}
+                        </div>
+
+                        <div className='form-group mb-2'>
+                            <label className='form-label'>Email:</label>
+                            <input 
+                                type='text' 
+                                className={`form-control ${errors.email ? 'is-invalid' : ''}`} 
+                                value={email} 
+                                onChange={(e) => handleEmailChange(e.target.value)} 
+                            />
+                            {errors.email && <div className='invalid-feedback'>{errors.email}</div>}
+                        </div>
+
+                        <div className='form-group mb-2'>
+                            <label className='form-label'>Department:</label>
+                            <input 
+                                type='text' 
+                                className={`form-control ${errors.department ? 'is-invalid' : ''}`} 
+                                value={department} 
+                                onChange={(e) => handleDeptChange(e.target.value)} 
+                            />
+                            {errors.department && <div className='invalid-feedback'>{errors.department}</div>}
+                        </div>
+
+                        <button className='btn btn-success' onClick={saveOrUpdateStudent}>Submit</button>
+                        <button className='btn btn-danger' onClick={() => navigator('/students')} style={{marginLeft: "10px"}}>Cancel</button>
+                    </form>
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default StudentComponent
+export default StudentComponent;
